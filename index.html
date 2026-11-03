@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1f2430; --line:#c9ced8; --accent:#2f5bea; --tile:#eef0f4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14161c; --card:#1d2029; --text:#eceef4; --line:#3a3f4d; --accent:#6c8cff; --tile:#2a2e3a; }
+  }
+  * { box-sizing:border-box; }
+  html, body { height:100%; margin:0; }
+  body { display:grid; place-items:center; background:var(--bg); color:var(--text);
+         font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:10px;
+         padding:22px; width:min(92vw,380px); }
+  h1 { font-size:1.1rem; margin:0 0 4px; }
+  .task { margin:0 0 14px; opacity:.8; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .tile { aspect-ratio:1; border:3px solid transparent; border-radius:6px; background:var(--tile);
+          font-size:2.4rem; cursor:pointer; padding:0; }
+  .tile[aria-pressed="true"] { border-color:var(--accent); }
+  .tile:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .row { display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:10px; }
+  #status { font-size:.9rem; opacity:.8; }
+  button.verify { background:var(--accent); color:#fff; border:0; border-radius:8px;
+                  padding:10px 20px; font-size:1rem; cursor:pointer; }
+  button.verify:disabled { opacity:.6; cursor:default; }
+
+  #scare { position:fixed; inset:0; background:#000; display:none; z-index:10; cursor:none; }
+  #scare video { width:100%; height:100%; object-fit:cover; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>Проверка безопасности</h1>
+  <p class="task">Выберите все картинки со светофорами</p>
+  <div class="grid" id="grid"></div>
+  <div class="row">
+    <span id="status"></span>
+    <button class="verify" id="verify">Подтвердить</button>
+  </div>
+</div>
+
+<div id="scare">
+  <video id="video" src="video.mp4" playsinline loop></video>
+</div>
+
+<script>
+  const grid = document.getElementById('grid');
+  const status = document.getElementById('status');
+  const verify = document.getElementById('verify');
+  const scare = document.getElementById('scare');
+  const video = document.getElementById('video');
+
+  // 9 плиток: часть со светофорами, остальные — случайные картинки
+  const others = ['🚗', '🚌', '🌳', '🏠', '🚲', '⛰️', '🐕'];
+  const tiles = Array.from({ length: 9 }, (_, i) => i < 4 ? '🚦' : others[Math.floor(Math.random() * others.length)]);
+  tiles.sort(() => Math.random() - 0.5);
+
+  tiles.forEach(emoji => {
+    const b = document.createElement('button');
+    b.className = 'tile';
+    b.type = 'button';
+    b.textContent = emoji;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+    grid.appendChild(b);
+  });
+
+  verify.addEventListener('click', () => {
+    verify.disabled = true;
+    status.textContent = 'Проверяю, не робот ли ты...';
+    setTimeout(() => {
+      scare.style.display = 'block';
+      video.play().catch(() => {});
+      if (scare.requestFullscreen) scare.requestFullscreen().catch(() => {});
+    }, 1500);
+  });
+</script>
+</body>
+</html>
